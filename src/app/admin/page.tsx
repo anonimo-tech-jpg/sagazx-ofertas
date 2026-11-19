@@ -36,9 +36,10 @@ export default function Admin() {
   );
 
   const fetchLink = () => wrap(async () => {
-    const d = await call("/api/admin/fetch-meta", "POST", { url: form.productUrl });
-    setForm((f) => ({ ...f, name: d.name || f.name, image: d.image || f.image, description: d.description || f.description, store: d.store || f.store, price: d.price || f.price }));
-    setMsg("Dados encontrados. Confira e complete o que faltar (link de afiliado, preços).");
+    const link = form.productUrl || form.affiliateUrl;
+    const d = await call("/api/admin/fetch-meta", "POST", { url: link });
+    setForm((f) => ({ ...f, productUrl: f.productUrl || d.finalUrl || link, name: d.name || f.name, image: d.image || f.image, description: d.description || f.description, store: d.store || f.store, price: d.price || f.price }));
+    setMsg(d.missing?.length ? `Não encontrei: ${d.missing.join(", ")}. A loja não permite leitura automática, complete esses campos.` : "Tudo encontrado. Confira e cole o link de afiliado.");
   });
   const save = () => wrap(async () => {
     const list = editId ? await call(`/api/admin/products/${editId}`, "PUT", form) : await call("/api/admin/products", "POST", form);
